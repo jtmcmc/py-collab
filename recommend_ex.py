@@ -6,9 +6,9 @@ from scipy.sparse import coo_matrix
 #need to make this for use in a np.array as opposed to current
 def jaccard_distance(item1,item2):
 	m = np.zeros((2,2))
-	for var1 in item1:
-		for var2 in item2:
-			m[var1][var2] += 1
+	for i in xrange(len(item1[0])):
+		for j in xrange(len(item2[0])):
+			m[item1[0][i]][item2[0][j]] += 1
 	j_dist = (m[0][1]+m[1][0])/(m[0][1]+m[1][0]+m[1][1]+0.0)
 	return j_dist
 
@@ -34,7 +34,7 @@ def pre_process(fi):
 		person,items = user.split('-')
 		items = items.split(',')
 		user_array.append(user)
-		user_pos = len(user_array)-1
+		user_pos[user] = len(user_array)-1
 		pre_process_items(item_array,item_pos,items)
 		for i in range(items):			
 			items[i] = item_dict[items[i]]
@@ -53,6 +53,8 @@ def create_sparse_mat(user_pos,item_pos,user_dict):
 
 
 #should this take a file as input?
+#this should not take a file as input and it should not take a line 
+#it should expect a string and an array of strings
 def build_recommender(file):
 	fi = open(file)
 	user_dict,item_array,user_pos,item_pos = pre_process(fi.readlines())
@@ -69,9 +71,43 @@ def build_recommender(file):
 		#customer is bad var name replace
 			for customer in current_item:
 				customer_items = sparse_item_matrix.getrow(customer_items[0]).nonzero()
+#this should become C or Cython and parallelized
 				for item in customer_items:
 					customer_purchase_mat[i,item[1]] += 1
 				item_sim_mat[i,item[1]] = jaccard_distance(sparse_coo.getcol(i).toarray(),sparse_coo.getcol(item[1]).toarray())
 	return item_sim_mat,customer_purchase_mat
+
+#build the recommender
+#it's going to expect a list of items coordinates purchased by a customer and 
+#it will return the N highest matching items 
+def recommend(customer,N,item_sim,customer_mat):
+	# one product the customer has purchased
+	items_hash = {}
+	for item in customer:
+		# all the items that have been purchased by customers including 'item'
+		purchased_also = customer_mat.getcol(item).nonzero()
+		for pair in purchased_also:
+			items_hash[(pair[0],pair[1])] = item_sim[pair[0]][pair[1]]
+		
+	# sort dict by values and then take the top N values
+
+
+# still to build lots of pre-process functions
+# a function to take a file handle and process the file
+# a function to take an input of a customer with a name and a list of items 
+# it's purchased (a string and array of strings). and map that array to a list 
+# of locations in the item matrices this can be done via the 
+
+#Should I make this all part of a class 
+#the class takes as input either a file or array
+#can add lines via an add_customer function
+#would then call the build_recommender function which would create the various
+#data structures, the item_dict and the item_sim and customer_purchase_mat 
+#most especially 
+#those will need to be instance variables of the class 
+
+
+#if I really wanted to parallelize this I would need to probably turn to hadoop 
+#or something like that
 
 
