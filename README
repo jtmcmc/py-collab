@@ -1,0 +1,4 @@
+This is a (Work in Progress) of a collaborative filtering library. The initial algorithm is going to be doing binary filtering based off of Amazon.com Recommendations: Item-to-Item Collaborative Filtering[1].
+
+
+[1] Greg Linden, Brent Smith, Jeremy York, "Amazon.com Recommendations: Item-to-Item Collaborative Filtering," IEEE Internet Computing, vol. 7, no. 1, pp. 76-80, Jan.-Feb. 2003, doi:10.1109/MIC.2003.1167344
