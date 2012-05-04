@@ -3,12 +3,22 @@ import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.sparse import coo_matrix
 
-#need to make this for use in a np.array as opposed to current
+#array parsing function expects format of customer-item1,item2,item3 expects list of strings
+def parse_array(in_list):
+	cust_item_dict = {}
+	for li in in_list:
+		li = li.split('-')
+		li[1] = li[1].split(',')
+		li[1] = [l.strip() for l in li[1]]
+		cust_item_dict[li[0]] = li[1]
+	return cust_item_dict
+
+#this expects two arrays with a structure (1,N) done by calling sparse_matrix.toarray() if they were originally sparse
 def jaccard_distance(item1,item2):
 	m = np.zeros((2,2))
+	# assumption here is vectors are same length since they are toarray this should be true
 	for i in xrange(len(item1[0])):
-		for j in xrange(len(item2[0])):
-			m[item1[0][i]][item2[0][j]] += 1
+		m[item1[0][i]][item2[0][i]] += 1
 	j_dist = (m[0][1]+m[1][0])/(m[0][1]+m[1][0]+m[1][1]+0.0)
 	return j_dist
 
@@ -74,7 +84,7 @@ def build_recommender(file):
 #this should become C or Cython and parallelized
 				for item in customer_items:
 					customer_purchase_mat[i,item[1]] += 1
-				item_sim_mat[i,item[1]] = jaccard_distance(sparse_coo.getcol(i).toarray(),sparse_coo.getcol(item[1]).toarray())
+				item_sim_mat[i,item[1]] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),sparse_item_matrix.getcol(item[1]).toarray())
 	return item_sim_mat,customer_purchase_mat
 
 #build the recommender
