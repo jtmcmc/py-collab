@@ -16,7 +16,11 @@ class test_recommend_base_functions(unittest.TestCase):
 		self.m10 = 2
 		self.m11 = 1
 
-		self
+		self.true_parsed_customers = { 'justin':['car','boat','plane'],
+						'diane':['boat','dress','shirt','pants'],
+						'jiffy':['suit','dress','food','hat','watch'],
+						'octo':['frills','seacreatures','watch','hat','bananas','glasses'],
+						}
 
 
 	#this should test the jaccard_distance function
@@ -25,20 +29,31 @@ class test_recommend_base_functions(unittest.TestCase):
 		true_result = (self.m01 + self.m10) / (self.m10 + self.m01 + self.m11 + 0.0)
 		self.assertEqual(true_result,rec.jaccard_distance(self.row1.toarray(),self.row2.toarray()))
 
+	#tests parse_array
 	def test_parse_array(self):
 		fi = open('simple_filter_test')
-		true_result = { 'justin':['car','boat','plane'],
-						'diane':['boat','dress','shirt','pants'],
-						'jiffy':['suit','dress','food','hat','watch'],
-						'octo':['frills','seacreatures','watches','hats','bananas','glasses'],
-						}
+		
 		ret_dict = rec.parse_array(fi.readlines())
-		print ret_dict
-		print sorted(ret_dict.keys())
+#		print ret_dict
+#		print sorted(ret_dict.keys())
 		for k in sorted(ret_dict.keys()):
-			self.assertEqual(true_result[k].sort(),ret_dict[k].sort())
-		for k in sorted(true_result.keys()):
-			self.assertEqual(true_result[k].sort(),ret_dict[k].sort())
+			self.assertEqual(self.true_parsed_customers[k].sort(),ret_dict[k].sort())
+		for k in sorted(self.true_parsed_customers.keys()):
+			self.assertEqual(self.true_parsed_customers[k].sort(),ret_dict[k].sort())
+
+	def test_pre_process(self):
+		after_octo = {'boat':0,'dress':1,'shirt':2,'pants':3,'suit':4,'food':5,'hat':6,'watch':7,'car':8,'plane':9,'frills':10,'seacreatures':11,'bananas':12,'glasses':13}
+		
+		#pass in 1 for it to be sorted
+		user_pos,item_pos = rec.pre_process(self.true_parsed_customers,1)
+		for k in after_octo:
+			self.assertEqual(after_octo[k],item_pos[k])
+		for k in item_pos:
+			self.assertEqual(after_octo[k],item_pos[k])
+
+
+
+
 
 if __name__ == '__main__':
 	unittest.main()
