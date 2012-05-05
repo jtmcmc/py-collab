@@ -57,13 +57,14 @@ def pre_process(fi,s=0):
 			item_user_dict[user_pos[user]] = pre_process_items(item_pos,fi[user])
 	return user_pos,item_pos,item_user_dict,user_dict
 
-#build sparse matrix
-def create_sparse_mat(user_pos,item_pos,user_dict):
-	MATRIX_SIZE = len(item_pos)
-	sparse_item_matrix = lil_matrix((MATRIX_SIZE,MATRIX_SIZE))
-	for user in user_dict:
-		for item in user_dict[user]:
-			sparse_item_matrix[user_pos[user],item_pos[item]] = 1
+#build sparse matrix where rows are customers and columns are items
+def create_sparse_user_item_mat(item_user_dict,n):
+	ROWS = len(item_user_dict)
+	COLS = n
+	sparse_item_matrix = lil_matrix((ROWS,COLS))
+	for user in item_user_dict:
+		for item in item_user_dict[user]:
+			sparse_item_matrix[user,item] = 1
 	return sparse_item_matrix
 
 

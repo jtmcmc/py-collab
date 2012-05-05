@@ -15,7 +15,10 @@ class test_recommend_base_functions(unittest.TestCase):
 		self.m01 = 2
 		self.m10 = 2
 		self.m11 = 1
-
+		self.true_matrix = [[1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+							[0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+							[1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
+							[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],]
 		self.true_parsed_customers = { 'justin':['car','boat','plane'],
 						'diane':['boat','dress','shirt','pants'],
 						'jiffy':['suit','dress','food','hat','watch'],
@@ -51,13 +54,18 @@ class test_recommend_base_functions(unittest.TestCase):
 			self.assertEqual(after_octo[k],item_pos[k])
 		for k in item_pos:
 			self.assertEqual(after_octo[k],item_pos[k])
-		print user_pos
-		print item_pos
-		print item_user_dict
-		print user_dict
 
+	#next test_create_sparse_matrix
+	def test_create_sparse_mat(self):
+		user_pos,item_pos,item_user_dict,user_dict = rec.pre_process(self.true_parsed_customers,1)
+		ret = rec.create_sparse_user_item_mat(item_user_dict,len(item_pos))
+		self.assertTrue(np.array_equal(np.array(self.true_matrix),ret.toarray()))
+		print ret.toarray()
+	#test_build_recommender
 
+	#test_recommend
 
+	#more to come!
 
 
 if __name__ == '__main__':
