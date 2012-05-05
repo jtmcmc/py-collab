@@ -41,15 +41,20 @@ class test_recommend_base_functions(unittest.TestCase):
 		for k in sorted(self.true_parsed_customers.keys()):
 			self.assertEqual(self.true_parsed_customers[k].sort(),ret_dict[k].sort())
 
+	#this needs to be improved but is ok for now
 	def test_pre_process(self):
 		after_octo = {'boat':0,'dress':1,'shirt':2,'pants':3,'suit':4,'food':5,'hat':6,'watch':7,'car':8,'plane':9,'frills':10,'seacreatures':11,'bananas':12,'glasses':13}
 		
 		#pass in 1 for it to be sorted
-		user_pos,item_pos = rec.pre_process(self.true_parsed_customers,1)
+		user_pos,item_pos,item_user_dict,user_dict = rec.pre_process(self.true_parsed_customers,1)
 		for k in after_octo:
 			self.assertEqual(after_octo[k],item_pos[k])
 		for k in item_pos:
 			self.assertEqual(after_octo[k],item_pos[k])
+		print user_pos
+		print item_pos
+		print item_user_dict
+		print user_dict
 
 
 

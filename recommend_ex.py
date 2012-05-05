@@ -27,11 +27,13 @@ def jaccard_distance(item1,item2):
 #this should update item_array and item_pos
 #I should probably remove item_array I could just use len(item_pos) 
 #don't know if i'll need it later but duly noted
-def pre_process_items(item_array,item_pos,user):
+def pre_process_items(item_pos,user):
+	ret_li = []
 	for item in user:
 		if item not in item_pos:
-			item_array.append(item)
-			item_pos[item] = len(item_array)-1
+			item_pos[item] = len(item_pos)
+		ret_li.append(item_pos[item])
+	return ret_li
 
 #this will return a dict of users where the values are lists for item numbers 
 def pre_process(fi,s=0):
@@ -39,19 +41,21 @@ def pre_process(fi,s=0):
 	item_pos = {}
 	user_dict = {}
 	user_array = []
+	# user_pos
 	user_pos = {}
+	# user_pos : [list of item_pos]
 	item_user_dict = {}
 	if s == 1:
 		for user in sorted(fi.keys()):
-			user_array.append(user)
-			user_pos[user] = len(user_array)-1
-			pre_process_items(item_array,item_pos,fi[user])
+			user_pos[user] = len(user_pos)
+			user_dict[user_pos[user]] = user
+			item_user_dict[user_pos[user]] = pre_process_items(item_pos,fi[user])
+
 	else:
 		for user in fi:
-			user_array.append(user)
-			user_pos[user] = len(user_array)-1
-			pre_process_items(item_array,item_pos,fi[user])
-	return user_pos,item_pos
+			user_pos[user] = len(user_pos)
+			item_user_dict[user_pos[user]] = pre_process_items(item_pos,fi[user])
+	return user_pos,item_pos,item_user_dict,user_dict
 
 #build sparse matrix
 def create_sparse_mat(user_pos,item_pos,user_dict):
