@@ -15,19 +15,23 @@ def parse_array(in_list):
 
 #this expects two arrays with a structure (1,N) done by calling sparse_matrix.toarray() if they were originally sparse
 def jaccard_distance(item1,item2):
-	print 'item 1'
-	print item1
-	print 'item 2'
-	print item2
-	print len(item1)
-	print item1[0][0]
+#	print 'item 1'
+#	print item1
+#	print 'item 2'
+#	print item2
+#	print len(item1)
+#	print item1[0][0]
 	m = np.zeros((2,2))
+#	print item1.shape
+#	print item2.shape
 	# assumption here is vectors are same length since they are toarray this should be true
-	for i in xrange(len(item1)):		
+	for i in xrange(len(item1)):
+#		print item1[i][0]
+#		print item2[i][0]		
 		m[item1[i][0]][item2[i][0]] += 1
 	j_dist = (m[0][1]+m[1][0])/(m[0][1]+m[1][0]+m[1][1]+0.0)
-	print m
-	print j_dist
+#	print m
+#	print j_dist
 	return j_dist
 
 #this function is not side effect free
@@ -103,27 +107,49 @@ def build_recommender(input,s=0):
 	print 'sparse_item_matrix'
 	print sparse_item_matrix.toarray()
 
+	#this should iterate over all the items
 	for i in xrange(len(item_pos)):
+		#this is taking all the customers that have selected this item
+		test = sparse_item_matrix.getcol(i)
+		print sparse_item_matrix.getcol(i).todense()
 		current_item = sparse_item_matrix.getcol(i).nonzero()
-	#	print 'current item'
-#		print current_item
+		print 'current item'
+		print current_item
+		print current_item[0]
+
+
+		#if any players have selected this item
 		if len(current_item) > 0:
-		#You should use customer[0] as that is the row. what's happening here is a weird transform
-			for customer in current_item:
-#				print customer[0]
-				customer_items = sparse_item_matrix.getrow(customer[0]).nonzero()
-#				print customer_items	
+			#look at all the customers that have selected this item
+			for customer in current_item[0]:
+				#get all the items this customer has also selected
+				print customer
+				customer_items = sparse_item_matrix.getrow(customer).nonzero()
+				print 'customer items'
+				print customer_items	
 #this should become C or Cython and parallelized
-				for item in customer_items:
-#					print item
-					customer_purchase_mat[i,item[1]] += 1
-				item_sim_mat[i,customer[0]] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
-												sparse_item_matrix.getcol(customer[0]).toarray())
+				#for each item this person has selected
+				for item in customer_items[1]:
+					print '(%d,%d)' %(i,item)
+					#note that item i and item have been selected together
+					customer_purchase_mat[i,item] += 1
+					#store the jaccard distance between i and item 
+					item_sim_mat[i,item] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
+												sparse_item_matrix.getcol(item).toarray())
+
+#					customer_purchase_mat[i,customer[1][j]] += 1
+#					print '(%d,%d)' %(i,customer[1][j])
+#					item_sim_mat[i,customer[1][j]] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
+#												sparse_item_matrix.getcol(customer[1][j]).toarray())
+	#should return item-item similarity matrix, item-item purchase matrix
+	#dict between  	
 	return item_sim_mat,customer_purchase_mat
 
 #build the recommender
 #it's going to expect a list of items coordinates purchased by a customer and 
 #it will return the N highest matching items 
+#couple of considerations - don't consider the item that is the same as the one passed in
+
 def recommend(customer,N,item_sim,customer_mat):
 	# one product the customer has purchased
 	items_hash = {}

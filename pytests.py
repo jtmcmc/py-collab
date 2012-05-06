@@ -19,6 +19,21 @@ class test_recommend_base_functions(unittest.TestCase):
 							[0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
 							[1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
 							[0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1],]
+		self.jac_matrix = [np.array([[1],[0],[1],[0]]),
+							np.array([[1],[1],[0],[0]]),
+							np.array([[1],[0],[0],[0]]),
+							np.array([[1],[0],[0],[0]]),
+							np.array([[0],[1],[0],[0]]),
+							np.array([[0],[1],[0],[0]]),
+							np.array([[0],[1],[0],[1]]),
+							np.array([[0],[1],[0],[1]]),
+							np.array([[0],[0],[1],[0]]),
+							np.array([[0],[0],[1],[0]]),
+							np.array([[0],[0],[0],[1]]),
+							np.array([[0],[0],[0],[1]]),
+							np.array([[0],[0],[0],[1]]),
+							np.array([[0],[0],[0],[1]])]
+
 		self.true_parsed_customers = { 'justin':['car','boat','plane'],
 						'diane':['boat','dress','shirt','pants'],
 						'jiffy':['suit','dress','food','hat','watch'],
@@ -76,7 +91,14 @@ class test_recommend_base_functions(unittest.TestCase):
 	def test_build_recommender(self):
 		fi = open('simple_filter_test').readlines()
 		item_sim_mat,customer_purchase_mat = rec.build_recommender(fi,1)
-
+		test_arr = []
+		for item1 in self.jac_matrix:
+			temp = []
+			for item2 in self.jac_matrix:
+				temp.append(rec.jaccard_distance(item1,item2))
+			test_arr.append(temp)
+		print 'test_arr'
+		print test_arr
 		print 'item_sim_mat'
 		print item_sim_mat.toarray()
 		print item_sim_mat.shape
