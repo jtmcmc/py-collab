@@ -15,11 +15,19 @@ def parse_array(in_list):
 
 #this expects two arrays with a structure (1,N) done by calling sparse_matrix.toarray() if they were originally sparse
 def jaccard_distance(item1,item2):
+	print 'item 1'
+	print item1
+	print 'item 2'
+	print item2
+	print len(item1)
+	print item1[0][0]
 	m = np.zeros((2,2))
 	# assumption here is vectors are same length since they are toarray this should be true
-	for i in xrange(len(item1[0])):
-		m[item1[0][i]][item2[0][i]] += 1
+	for i in xrange(len(item1)):		
+		m[item1[i][0]][item2[i][0]] += 1
 	j_dist = (m[0][1]+m[1][0])/(m[0][1]+m[1][0]+m[1][1]+0.0)
+	print m
+	print j_dist
 	return j_dist
 
 #this function is not side effect free
@@ -35,6 +43,10 @@ def pre_process_items(item_pos,user):
 		ret_li.append(item_pos[item])
 	return ret_li
 
+#this expects a dict where keys are customer strings and values are lists of 
+#item strings
+#and a 1/0 value (default 0) that determines whether it should sort 
+# (used only for testing purposes)
 #this will return a dict of users where the values are lists for item numbers 
 def pre_process(fi,s=0):
 	item_array = []
@@ -54,7 +66,9 @@ def pre_process(fi,s=0):
 	else:
 		for user in fi:
 			user_pos[user] = len(user_pos)
+			user_dict[user_pos[user]] = user
 			item_user_dict[user_pos[user]] = pre_process_items(item_pos,fi[user])
+
 	return user_pos,item_pos,item_user_dict,user_dict
 
 #build sparse matrix where rows are customers and columns are items
@@ -68,29 +82,43 @@ def create_sparse_user_item_mat(item_user_dict,n):
 	return sparse_item_matrix
 
 
-#should this take a file as input?
-#this should not take a file as input and it should not take a line 
-#it should expect a string and an array of strings
-def build_recommender(file):
-	fi = open(file)
-	user_dict,item_array,user_pos,item_pos = pre_process(fi.readlines())
-	sparse_item_matrix = create_sparse_mat(user_pos,item_pos,user_dict)
 
+
+#This expects an array of strings input and s a 1 or 0 indicating whether it 
+#should sort things, this is only used for testing
+def build_recommender(input,s=0):
+	print input
+	user_pos,item_pos,item_user_dict,user_dict = pre_process(parse_array(input),s)
+	print item_pos
+	print user_dict
+	print item_user_dict
+	sparse_item_matrix = create_sparse_user_item_mat(item_user_dict,len(item_pos))
+	MATRIX_SIZE = sparse_item_matrix.shape[1]
+	print 'MATRIX_SIZE'
+	print MATRIX_SIZE
 	item_sim_dict = {}
-	sparse_coo = sparse_item_matrix.coo_matrix()
 	#next is to actually implement the rest of the amazon algorithm can use getcol and getrow 
-	customer_purchase_mat = coo_matrix(sparse_coo.shape())
-	item_sim_mat = coo_matrix(sparse_coo.shape())
+	customer_purchase_mat = lil_matrix(np.zeros((MATRIX_SIZE,MATRIX_SIZE)))
+	item_sim_mat = lil_matrix(np.zeros((MATRIX_SIZE,MATRIX_SIZE)))
+	print 'sparse_item_matrix'
+	print sparse_item_matrix.toarray()
+
 	for i in xrange(len(item_pos)):
-		current_item = sparse_coo.getcol(i).nonzero()
+		current_item = sparse_item_matrix.getcol(i).nonzero()
+	#	print 'current item'
+#		print current_item
 		if len(current_item) > 0:
-		#customer is bad var name replace
+		#You should use customer[0] as that is the row. what's happening here is a weird transform
 			for customer in current_item:
-				customer_items = sparse_item_matrix.getrow(customer_items[0]).nonzero()
+#				print customer[0]
+				customer_items = sparse_item_matrix.getrow(customer[0]).nonzero()
+#				print customer_items	
 #this should become C or Cython and parallelized
 				for item in customer_items:
+#					print item
 					customer_purchase_mat[i,item[1]] += 1
-				item_sim_mat[i,item[1]] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),sparse_item_matrix.getcol(item[1]).toarray())
+				item_sim_mat[i,customer[0]] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
+												sparse_item_matrix.getcol(customer[0]).toarray())
 	return item_sim_mat,customer_purchase_mat
 
 #build the recommender
