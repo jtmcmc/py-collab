@@ -111,36 +111,22 @@ def build_recommender(input,s=0):
 	for i in xrange(len(item_pos)):
 		#this is taking all the customers that have selected this item
 		test = sparse_item_matrix.getcol(i)
-		print sparse_item_matrix.getcol(i).todense()
 		current_item = sparse_item_matrix.getcol(i).nonzero()
-		print 'current item'
-		print current_item
-		print current_item[0]
-
-
 		#if any players have selected this item
 		if len(current_item) > 0:
 			#look at all the customers that have selected this item
 			for customer in current_item[0]:
 				#get all the items this customer has also selected
-				print customer
 				customer_items = sparse_item_matrix.getrow(customer).nonzero()
-				print 'customer items'
-				print customer_items	
 #this should become C or Cython and parallelized
 				#for each item this person has selected
 				for item in customer_items[1]:
-					print '(%d,%d)' %(i,item)
 					#note that item i and item have been selected together
 					customer_purchase_mat[i,item] += 1
 					#store the jaccard distance between i and item 
 					item_sim_mat[i,item] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
 												sparse_item_matrix.getcol(item).toarray())
 
-#					customer_purchase_mat[i,customer[1][j]] += 1
-#					print '(%d,%d)' %(i,customer[1][j])
-#					item_sim_mat[i,customer[1][j]] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
-#												sparse_item_matrix.getcol(customer[1][j]).toarray())
 	#should return item-item similarity matrix, item-item purchase matrix
 	#dict between  	
 	return item_sim_mat,customer_purchase_mat
