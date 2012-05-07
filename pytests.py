@@ -39,7 +39,15 @@ class test_recommend_base_functions(unittest.TestCase):
 						'jiffy':['suit','dress','food','hat','watch'],
 						'octo':['frills','seacreatures','watch','hat','bananas','glasses'],
 						}
-
+		self.used_coords = [(0,0),(0,1),(0,2),(0,3),(0,8),(0,9),(1,0),(1,1),(1,2),(1,3),(1,4),
+							(1,5),(1,6),(1,7),(2,0),(2,1),(2,2),(2,3),(3,0),(3,1),(3,2),(3,3),
+							(4,1),(4,4),(4,5),(4,6),(4,7),(5,1),(5,4),(5,5),(5,6),(5,7),
+							(6,1),(6,4),(6,5),(6,6),(6,7),(6,10),(6,11),(6,12),(6,13),
+							(7,1),(7,4),(7,5),(7,6),(7,7),(7,10),(7,11),(7,12),(7,13),
+							(8,0),(8,8),(8,9),(9,0),(9,8),(9,9),(10,6),(10,7),(10,10),
+							(10,11),(10,12),(10,13),(11,6),(11,7),(11,10),(11,11),(11,12),
+							(11,13),(12,6),(12,7),(12,10),(12,11),(12,12),(12,13),(13,6),
+							(13,7),(13,10),(13,11),(13,12),(13,13)]
 
 	#this should test the jaccard_distance function
 	#expects two sparse 1xN matrices
@@ -90,21 +98,28 @@ class test_recommend_base_functions(unittest.TestCase):
 	#test_build_recommender
 	def test_build_recommender(self):
 		fi = open('simple_filter_test').readlines()
-		item_sim_mat,customer_purchase_mat = rec.build_recommender(fi,1)
+		item_sim_mat,user_dict,item_pos = rec.build_recommender(fi,1)
 		test_arr = []
+		item_sim_mat = item_sim_mat.toarray()
+		print 'item sim mat'
+		print item_sim_mat
 		for item1 in self.jac_matrix:
 			temp = []
 			for item2 in self.jac_matrix:
 				temp.append(rec.jaccard_distance(item1,item2))
 			test_arr.append(temp)
-		print 'test_arr'
-		print test_arr
-		print 'item_sim_mat'
-		print item_sim_mat.toarray()
-		print item_sim_mat.shape
-		print 'customer_purchase_mat'
-		print customer_purchase_mat.toarray()
-		print customer_purchase_mat.shape
+		for ent in self.used_coords:
+			self.assertEqual(test_arr[ent[0]][ent[1]],item_sim_mat[ent[0]][ent[1]])
+		for i in range(len(item_sim_mat)):
+			for j in range(len(item_sim_mat)):
+				if (i,j) in self.used_coords:
+					self.assertEqual(test_arr[i][j],item_sim_mat[i][j])
+				else:
+#					print '(%d,%d)' %(i,j)
+					self.assertEqual(item_sim_mat[i][j],0)	
+	
+		print item_pos
+		print user_dict
 	#test_recommend
 
 	#more to come!

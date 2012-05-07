@@ -13,26 +13,16 @@ def parse_array(in_list):
 		cust_item_dict[li[0]] = li[1]
 	return cust_item_dict
 
+
+
 #this expects two arrays with a structure (1,N) done by calling sparse_matrix.toarray() if they were originally sparse
 def jaccard_distance(item1,item2):
-#	print 'item 1'
-#	print item1
-#	print 'item 2'
-#	print item2
-#	print len(item1)
-#	print item1[0][0]
 	m = np.zeros((2,2))
-#	print item1.shape
-#	print item2.shape
 	# assumption here is vectors are same length since they are toarray this should be true
 	for i in xrange(len(item1)):
-#		print item1[i][0]
-#		print item2[i][0]		
 		m[item1[i][0]][item2[i][0]] += 1
 	j_dist = (m[0][1]+m[1][0])/(m[0][1]+m[1][0]+m[1][1]+0.0)
-#	print m
-#	print j_dist
-	return j_dist
+	return 1-j_dist
 
 #this function is not side effect free
 #this function will add to an item array new items
@@ -66,13 +56,11 @@ def pre_process(fi,s=0):
 			user_pos[user] = len(user_pos)
 			user_dict[user_pos[user]] = user
 			item_user_dict[user_pos[user]] = pre_process_items(item_pos,fi[user])
-
 	else:
 		for user in fi:
 			user_pos[user] = len(user_pos)
 			user_dict[user_pos[user]] = user
 			item_user_dict[user_pos[user]] = pre_process_items(item_pos,fi[user])
-
 	return user_pos,item_pos,item_user_dict,user_dict
 
 #build sparse matrix where rows are customers and columns are items
@@ -118,7 +106,7 @@ def build_recommender(input,s=0):
 			for customer in current_item[0]:
 				#get all the items this customer has also selected
 				customer_items = sparse_item_matrix.getrow(customer).nonzero()
-#this should become C or Cython and parallelized
+				#this should become C or Cython and parallelized
 				#for each item this person has selected
 				for item in customer_items[1]:
 					#note that item i and item have been selected together
@@ -126,10 +114,11 @@ def build_recommender(input,s=0):
 					#store the jaccard distance between i and item 
 					item_sim_mat[i,item] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
 												sparse_item_matrix.getcol(item).toarray())
-
+#	print 'item sim mat'
+#	print item_sim_mat.toarray()
 	#should return item-item similarity matrix, item-item purchase matrix
-	#dict between  	
-	return item_sim_mat,customer_purchase_mat
+	#also dict mappings  	
+	return item_sim_mat,user_dict,item_pos
 
 #build the recommender
 #it's going to expect a list of items coordinates purchased by a customer and 
