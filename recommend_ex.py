@@ -79,24 +79,21 @@ def create_sparse_user_item_mat(item_user_dict,n):
 #This expects an array of strings input and s a 1 or 0 indicating whether it 
 #should sort things, this is only used for testing
 def build_recommender(input,s=0):
-	print input
-	user_pos,item_pos,item_user_dict,user_dict = pre_process(parse_array(input),s)
-	print item_pos
-	print user_dict
-	print item_user_dict
+	user_pos,item_pos,item_user_dict,user_dict = pre_process(input,s)
+	item_dict = dict(reversed(item) for item in item_pos.items())
 	sparse_item_matrix = create_sparse_user_item_mat(item_user_dict,len(item_pos))
 	MATRIX_SIZE = sparse_item_matrix.shape[1]
-	print 'MATRIX_SIZE'
-	print MATRIX_SIZE
+
 	item_sim_dict = {}
 	#next is to actually implement the rest of the amazon algorithm can use getcol and getrow 
 	customer_purchase_mat = lil_matrix(np.zeros((MATRIX_SIZE,MATRIX_SIZE)))
 	item_sim_mat = lil_matrix(np.zeros((MATRIX_SIZE,MATRIX_SIZE)))
-	print 'sparse_item_matrix'
-	print sparse_item_matrix.toarray()
 
 	#this should iterate over all the items
 	for i in xrange(len(item_pos)):
+
+		if i % 10 == 0:
+			print i
 		#this is taking all the customers that have selected this item
 		test = sparse_item_matrix.getcol(i)
 		current_item = sparse_item_matrix.getcol(i).nonzero()
@@ -110,7 +107,7 @@ def build_recommender(input,s=0):
 				#for each item this person has selected
 				for item in customer_items[1]:
 					#note that item i and item have been selected together
-					customer_purchase_mat[i,item] += 1
+				#	customer_purchase_mat[i,item] += 1
 					#store the jaccard distance between i and item 
 					item_sim_mat[i,item] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
 												sparse_item_matrix.getcol(item).toarray())
@@ -118,18 +115,42 @@ def build_recommender(input,s=0):
 #	print item_sim_mat.toarray()
 	#should return item-item similarity matrix, item-item purchase matrix
 	#also dict mappings  	
-	return item_sim_mat,user_dict,item_pos
+	return item_sim_mat,user_dict,item_pos,user_pos,item_dict
+
+def build_naive_recommender(input,s=0):
+	user_pos,item_pos,item_user_dict,user_dict = pre_process(input,s)
+	item_dict = dict(reversed(item) for item in item_pos.items())
+	sparse_item_matrix = create_sparse_user_item_mat(item_user_dict,len(item_pos))
+	MATRIX_SIZE = sparse_item_matrix.shape[1]
+
+	item_sim_dict = {}
+	#next is to actually implement the rest of the amazon algorithm can use getcol and getrow 
+	customer_purchase_mat = lil_matrix(np.zeros((MATRIX_SIZE,MATRIX_SIZE)))
+	item_sim_mat = lil_matrix(np.zeros((MATRIX_SIZE,MATRIX_SIZE)))
+
+	#this should iterate over all the items
+	for i in xrange(len(item_pos)):
+		if i % 10 == 0:
+			print i
+		for j in xrange(len(item_pos)):
+			item_sim_mat[i,j] = jaccard_distance(sparse_item_matrix.getcol(i).toarray(),
+												sparse_item_matrix.getcol(j).toarray())
+	return item_sim_mat,user_dict,item_pos,user_pos,item_dict
+
 
 #build the recommender
 #it's going to expect a list of items coordinates purchased by a customer and 
 #it will return the N highest matching items 
 #couple of considerations - don't consider the item that is the same as the one passed in
 
-def recommend(customer,N,item_sim,customer_mat):
+#takes in item_sim_mat, customer,user_dict,user_pos,item_dict,item_pos,N (n items)
+#customer is expected to be in {'customer':['item1','item2']} format
+def recommend(item_sim_mat, customer,item_dict,item_pos,N):
 	# one product the customer has purchased
 	items_hash = {}
-	for item in customer:
+	for item in customer.values():
 		# all the items that have been purchased by customers including 'item'
+		position = item_pos[item]
 		purchased_also = customer_mat.getcol(item).nonzero()
 		for pair in purchased_also:
 			items_hash[(pair[0],pair[1])] = item_sim[pair[0]][pair[1]]

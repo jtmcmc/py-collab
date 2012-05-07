@@ -1,10 +1,11 @@
 import unittest
+import time
 import recommend_ex as rec
 import numpy as np
 import scipy as sp
 from scipy.sparse import coo_matrix
 from scipy.sparse import lil_matrix
-
+from numpy.random import randint
 class test_recommend_base_functions(unittest.TestCase):
 
 	#setup for Testcase
@@ -90,7 +91,7 @@ class test_recommend_base_functions(unittest.TestCase):
 
 	#next test_create_sparse_matrix
 	def test_create_sparse_mat(self):
-		user_pos,item_pos,item_user_dict,user_dict = rec.pre_process(self.true_parsed_customers,1)
+		user_pos,item_pos,item_user_dict,user_dict= rec.pre_process(self.true_parsed_customers,1)
 		ret = rec.create_sparse_user_item_mat(item_user_dict,len(item_pos))
 		self.assertTrue(np.array_equal(np.array(self.true_matrix),ret.toarray()))
 		print ret.toarray()
@@ -98,7 +99,7 @@ class test_recommend_base_functions(unittest.TestCase):
 	#test_build_recommender
 	def test_build_recommender(self):
 		fi = open('simple_filter_test').readlines()
-		item_sim_mat,user_dict,item_pos = rec.build_recommender(fi,1)
+		item_sim_mat,user_dict,item_pos,user_pos,item_dict = rec.build_recommender(rec.parse_array(fi),1)
 		test_arr = []
 		item_sim_mat = item_sim_mat.toarray()
 		print 'item sim mat'
@@ -120,9 +121,30 @@ class test_recommend_base_functions(unittest.TestCase):
 	
 		print item_pos
 		print user_dict
+		print user_pos 
+		print item_dict
 	#test_recommend
 
 	#more to come!
+	def test_speed_build_recommender(self):
+		NUM_CUSTOMERS = 100
+		NUM_ITEMS = 100
+		NUM_ITEMS_PER_CUST = 10
+		fi = {}
+		for i in xrange(0,NUM_CUSTOMERS):
+			i = str(i)
+			fi[i] = randint(0,NUM_ITEMS,50)
+			fi[i] = [str(x) for x in fi[i]]
+		t3 = time.time()
+		rec.build_naive_recommender(fi)
+		t4 = time.time()
+		print (t4-t3)/60.0
+
+		t1 = time.time()
+		rec.build_recommender(fi)
+		t2 = time.time()
+
+		print (t2-t1)/60.0
 
 
 if __name__ == '__main__':
